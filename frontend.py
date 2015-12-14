@@ -7,6 +7,8 @@ from troposphere.ec2 import *
 from awacs.aws import Statement, Allow, Principal, Policy
 from awacs.sts import AssumeRole
 
+# Create the frontend stack and global resources
+
 def create(AMIMap):
 	# Create frontend Template
 	frontend = Template()

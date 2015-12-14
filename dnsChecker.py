@@ -4,6 +4,8 @@ import fnmatch
 import frontend
 import checkers
 
+# Main script that creates templates then creates CNF stacks
+
 # Get latest AMIs
 def getAMI():
 	AMIMap = {}

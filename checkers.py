@@ -2,6 +2,8 @@ from troposphere import Template, Ref, Tags
 
 from troposphere.ec2 import *
 
+# Stack that creates a DNS checker instance
+
 def create(AMIMap):
 	# Create checker stack
 	checker = Template()
