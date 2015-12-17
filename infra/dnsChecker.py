@@ -3,6 +3,8 @@ import boto.ec2
 import fnmatch
 import frontend
 import checkers
+import time
+import sys
 
 # Main script that creates templates then creates CFN stacks
 
@@ -23,21 +25,57 @@ def getAMI():
                 AMIMap[region.name] = {"id": latestAMI}
 	return AMIMap
 
-AMIMap = getAMI()
+# Disable dynamically getting AMIs to speed up testing
+#AMIMap = getAMI()
+
+AMIMap = { \
+	'us-east-1': {'id': 'ami-60b6c60a'}, \
+	'ap-northeast-1': {'id': 'ami-383c1956'}, \
+	'sa-east-1': {'id': 'ami-6817af04'}, \
+	'eu-central-1': {'id': 'ami-bc5b48d0'}, \
+	'ap-southeast-1': {'id': 'ami-c9b572aa'}, \
+	'ap-southeast-2': {'id': 'ami-48d38c2b'}, \
+	'us-west-2': {'id': 'ami-f0091d91'}, 
+	'us-gov-west-1': {'id': 'ami-f0091d91'}, \
+	'us-west-1': {'id': 'ami-d5ea86b5'}, \
+	'cn-north-1': {'id': 'ami-60b6c60a'}, \
+	'eu-west-1': {'id': 'ami-bff32ccc'} \
+}
 
 # Create frontend stack template
 frontendStack = frontend.create(AMIMap)
 
-# Create checker stack template
-checkerStack = checkers.create(AMIMap)
-
 # Create or update frontend stack
+print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
 cfnConnection.create_stack(
         stack_name="dnsCheckerFrontend", 
         template_body=frontendStack.to_json(), 
         capabilities=["CAPABILITY_IAM"]
 )
+
+# Wait for frontend stack to create so we can get the SNS topic and instance profile from it
+print("Waiting for frontend stack creation")
+cf = boto.cloudformation.connect_to_region("us-west-2")
+
+stack = cf.describe_stacks("dnsCheckerFrontend")
+while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
+	print("."),
+	sys.stdout.flush()
+        time.sleep(10)
+        stack = cf.describe_stacks("dnsCheckerFrontend")     
+
+print("\n")
+
+for output in stack[0].outputs:
+        if output.key == "instanceProfile":
+                instanceProfile = output.value
+        if output.key == "snsTopic":
+                snsTopic = output.value
+
+# Create checker stack template
+checkerStack = checkers.create(AMIMap, instanceProfile, snsTopic)
+
 # Create checker stacks
 # Get list of regions
 regions = boto.ec2.regions()
@@ -47,8 +85,10 @@ for region in regions:
 	if not fnmatch.fnmatch(region.name,"cn-*") and not fnmatch.fnmatch(region.name,"*gov*"):
 	
 		# Launch checker stack in region
+		print("Creating checker stack in %s" % region.name)
 		cfnConn = boto.cloudformation.connect_to_region(region.name)
 		cfnConn.create_stack(
 			stack_name="dnsCheckerChecker",
 			template_body=checkerStack.to_json()
 		)
+print("Finished")

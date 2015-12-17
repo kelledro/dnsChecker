@@ -1,4 +1,4 @@
-from troposphere import Template, Ref, Tags
+from troposphere import Template, Ref, Tags, Output
 
 from troposphere.iam import Role, InstanceProfile, PolicyType
 from troposphere.sns import Topic
@@ -120,7 +120,14 @@ def create(AMIMap):
 		)
 	)
 
+	"""
 	# Create DDB Table
+	dnscheckerDDB = frontend.add_resource(
+		Table(
+			"dnsCheckerDDB",
+			AttributeDefinitions=[
+				AttributeDefinition(
+	"""
 
 	# Create frontend VPC
 	frontendVPC = frontend.add_resource(
@@ -236,5 +243,26 @@ def create(AMIMap):
 			Domain="vpc",
 			InstanceId=Ref(frontendInstance)
 		)
-	)	
+	)
+
+	# Output SNS topic:
+	frontend.add_output(
+		[Output
+			("snsTopic",
+			Description="SNS Topic",
+			Value=Ref(checkerTopic)
+			)
+		]
+	)
+	
+	# Output Instance profile
+	frontend.add_output(
+		[Output
+			("instanceProfile",
+			Description="Instance Profile",
+			Value=Ref(checkerProfile)
+			)
+		]
+	)
+
 	return frontend

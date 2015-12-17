@@ -4,7 +4,7 @@ from troposphere.ec2 import *
 
 # Stack that creates a DNS checker instance
 
-def create(AMIMap):
+def create(AMIMap, instanceProfile, snsTopic):
 	# Create checker stack
 	checker = Template()
 
@@ -102,6 +102,7 @@ def create(AMIMap):
 			ImageId=FindInMap("AMIMap",Ref("AWS::Region"),"id"),
 			InstanceType="t2.micro",
 			KeyName="supportInstance",
+			IamInstanceProfile=instanceProfile,
 			# need to pass checkerProfile from frontend stack
 			#IamInstanceProfile=Ref(checkerProfile),
 			NetworkInterfaces=[
