@@ -2,6 +2,7 @@ from troposphere import Template, Ref, Tags, Output
 
 from troposphere.iam import Role, InstanceProfile, PolicyType
 from troposphere.sns import Topic
+from troposphere.dynamodb import Table, AttributeDefinition, Key, ProvisionedThroughput
 from troposphere.ec2 import *
 
 from awacs.aws import Statement, Allow, Principal, Policy
@@ -120,14 +121,37 @@ def create(AMIMap):
 		)
 	)
 
-	"""
+	
 	# Create DDB Table
 	dnscheckerDDB = frontend.add_resource(
 		Table(
 			"dnsCheckerDDB",
 			AttributeDefinitions=[
 				AttributeDefinition(
-	"""
+					"checkId",
+					"S"
+				),
+				AttributeDefinition(
+					"region",
+					"S"
+				)
+			],
+			KeySchema=[
+				Key(
+					"checkId",
+					"HASH"
+				),
+				Key(
+					"region",
+					"RANGE"
+				)
+			],
+			ProvisionedThroughput=ProvisionedThroughput(
+				1,
+				1
+			)
+		)
+	)
 
 	# Create frontend VPC
 	frontendVPC = frontend.add_resource(
@@ -264,5 +288,16 @@ def create(AMIMap):
 			)
 		]
 	)
+
+        # Output DDB table
+        frontend.add_output(
+                [Output
+                        ("dnsCheckerDDB",
+                        Description="DynamoDB table",
+                        Value=Ref(dnsCheckerDDB)
+                        )
+                ]
+        )
+
 
 	return frontend

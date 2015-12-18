@@ -48,7 +48,7 @@ frontendStack = frontend.create(AMIMap)
 # Create or update frontend stack
 print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
-cfnConnection.create_stack(
+cfnConnection.update_stack(
         stack_name="dnsCheckerFrontend", 
         template_body=frontendStack.to_json(), 
         capabilities=["CAPABILITY_IAM"]
@@ -59,7 +59,7 @@ print("Waiting for frontend stack creation")
 cf = boto.cloudformation.connect_to_region("us-west-2")
 
 stack = cf.describe_stacks("dnsCheckerFrontend")
-while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
+while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"):
 	print("."),
 	sys.stdout.flush()
         time.sleep(10)
@@ -72,9 +72,11 @@ for output in stack[0].outputs:
                 instanceProfile = output.value
         if output.key == "snsTopic":
                 snsTopic = output.value
+	if output.key == "dnsCheckerDDB":
+		dnsCheckerDDB = output.value
 
 # Create checker stack template
-checkerStack = checkers.create(AMIMap, instanceProfile, snsTopic)
+checkerStack = checkers.create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB)
 
 # Create checker stacks
 # Get list of regions
@@ -87,7 +89,7 @@ for region in regions:
 		# Launch checker stack in region
 		print("Creating checker stack in %s" % region.name)
 		cfnConn = boto.cloudformation.connect_to_region(region.name)
-		cfnConn.create_stack(
+		cfnConn.update_stack(
 			stack_name="dnsCheckerChecker",
 			template_body=checkerStack.to_json()
 		)

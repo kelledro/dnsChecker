@@ -4,7 +4,7 @@ from troposphere.ec2 import *
 
 # Stack that creates a DNS checker instance
 
-def create(AMIMap, instanceProfile, snsTopic):
+def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 	# Create checker stack
 	checker = Template()
 
