@@ -33,7 +33,7 @@ def application(environ, start_response):
 		region = requests.get("http://169.254.169.254/latest/meta-data/placement/availability-zone")
 
                 # Get table
-                table = ddbcon.get_table(params["dnsCheckerDDB")
+                table = ddbcon.get_table(params["dnsCheckerDDB"])
 
                 # Create item
                 itemData = {
