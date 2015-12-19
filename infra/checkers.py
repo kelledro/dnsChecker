@@ -1,4 +1,4 @@
-from troposphere import Template, Ref, Tags
+from troposphere import Template, Ref, Tags, Join, Base64
 
 from troposphere.ec2 import *
 
@@ -101,10 +101,20 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			"checkerInstance",
 			ImageId=FindInMap("AMIMap",Ref("AWS::Region"),"id"),
 			InstanceType="t2.micro",
-			KeyName="supportInstance",
+			KeyName="supportInstance", # TODO remove this after testing
 			IamInstanceProfile=instanceProfile,
-			# need to pass checkerProfile from frontend stack
-			#IamInstanceProfile=Ref(checkerProfile),
+			UserData=Base64(
+				Join("",
+					[
+						"{ \"snsTopic\" : \"",
+						snsTopic,
+						"\",\n",
+						"\"dnsCheckerDDB\" : \"",
+						dnsCheckerDDB,
+						"\"\n}"
+					]
+				)
+			),
 			NetworkInterfaces=[
 				NetworkInterfaceProperty(
 					GroupSet=[
