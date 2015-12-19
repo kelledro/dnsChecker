@@ -5,6 +5,7 @@ import frontend
 import checkers
 import time
 import sys
+import json
 
 # Main script that creates templates then creates CFN stacks
 
@@ -48,17 +49,42 @@ frontendStack = frontend.create(AMIMap)
 # Create or update frontend stack
 print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
-cfnConnection.create_stack(
-        stack_name="dnsCheckerFrontend", 
-        template_body=frontendStack.to_json(), 
-        capabilities=["CAPABILITY_IAM"]
-)
+try:
+	cfnConnection.create_stack(
+	        stack_name="dnsCheckerFrontend", 
+	        template_body=frontendStack.to_json(), 
+	        capabilities=["CAPABILITY_IAM"]
+	)
+except boto.exception.BotoServerError as e:
+	error = json.loads(e.body)
+
+	# Try updating if stack already exists
+	if error["Error"]["Code"] == "AlreadyExistsException":
+		print error["Error"]["Message"]
+	        try:
+			cfnConnection.update_stack(
+	            		stack_name="dnsCheckerFrontend",
+        	        	template_body=frontendStack.to_json(),
+		                capabilities=["CAPABILITY_IAM"]
+		        )
+		except boto.exception.BotoServerError as e:
+			error = json.loads(e.body)
+			
+			# Print error eg: No updates
+			if error["Error"]["Code"] == "ValidationError":
+				print error["Error"]["Message"]
+
+	# Print error eg: No updates
+	elif error["Error"]["Code"] == "ValidationError":
+		print error["Error"]["Message"]
+		
 
 # Wait for frontend stack to create so we can get the SNS topic and instance profile from it
 print("Waiting for frontend stack creation")
 cf = boto.cloudformation.connect_to_region("us-west-2")
 
 stack = cf.describe_stacks("dnsCheckerFrontend")
+print("."),
 while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"):
 	print("."),
 	sys.stdout.flush()
@@ -89,8 +115,31 @@ for region in regions:
 		# Launch checker stack in region
 		print("Creating checker stack in %s" % region.name)
 		cfnConn = boto.cloudformation.connect_to_region(region.name)
-		cfnConn.create_stack(
-			stack_name="dnsCheckerChecker",
-			template_body=checkerStack.to_json()
-		)
+		try:
+			cfnConn.create_stack(
+				stack_name="dnsCheckerChecker",
+				template_body=checkerStack.to_json()
+			)
+		except boto.exception.BotoServerError as e:
+			error = json.loads(e.body)
+		
+			# Try updating if stack already exists
+			if error["Error"]["Code"] == "AlreadyExistsException":
+				print error["Error"]["Message"]
+				try:
+		                        cfnConn.update_stack(
+                		                stack_name="dnsCheckerChecker",
+                        		        template_body=checkerStack.to_json()
+		                        )
+				except boto.exception.BotoServerError as e:
+					error = json.loads(e.body)
+					
+					# Print error eg: No Updates
+					if error["Error"]["Code"] == "ValidationError":
+						print error["Error"]["Message"]
+
+			# Print error eg: No Updates
+			elif error["Error"]["Code"] == "ValidationError":
+				print error["Error"]["Message"]
+
 print("Finished")
