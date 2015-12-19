@@ -123,7 +123,7 @@ def create(AMIMap):
 
 	
 	# Create DDB Table
-	dnscheckerDDB = frontend.add_resource(
+	dnsCheckerDDB = frontend.add_resource(
 		Table(
 			"dnsCheckerDDB",
 			AttributeDefinitions=[

@@ -48,7 +48,7 @@ frontendStack = frontend.create(AMIMap)
 # Create or update frontend stack
 print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
-cfnConnection.update_stack(
+cfnConnection.create_stack(
         stack_name="dnsCheckerFrontend", 
         template_body=frontendStack.to_json(), 
         capabilities=["CAPABILITY_IAM"]
@@ -89,7 +89,7 @@ for region in regions:
 		# Launch checker stack in region
 		print("Creating checker stack in %s" % region.name)
 		cfnConn = boto.cloudformation.connect_to_region(region.name)
-		cfnConn.update_stack(
+		cfnConn.create_stack(
 			stack_name="dnsCheckerChecker",
 			template_body=checkerStack.to_json()
 		)

@@ -25,8 +25,15 @@ def application(environ, start_response):
                 # Connect to DDB
                 ddbcon = boto.dynamodb.connect_to_region("us-west-2")
 
+		# Get DDB table from user-data
+		userData = requests.get("http://169.254.169.254/latest/user-data")
+		params = userData.json()
+		
+		# Get region from meta-data
+		region = requests.get("http://169.254.169.254/latest/meta-data/placement/availability-zone")
+
                 # Get table
-                table = ddbcon.get_table("dnsCheckerFrontend-dnsCheckerDDB-127OHC3UC9B29")
+                table = ddbcon.get_table(params["dnsCheckerDDB")
 
                 # Create item
                 itemData = {
@@ -34,7 +41,7 @@ def application(environ, start_response):
                 }
                 item = table.new_item(
                         hash_key=message["checkId"],
-                        range_key="us-west-2",
+                        range_key=region.text[0:-1],
                         attrs=itemData
                 )
                 item.put()
