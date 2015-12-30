@@ -78,7 +78,7 @@ def create(AMIMap):
 		PolicyType(
 			"checkerPolicy",
 			PolicyName="checkerPolicy",
-			# ToDo lock down actions and resources
+			# TODO lock down actions and resources
 			PolicyDocument={
 				"Statement":[{
 					"Effect": "Allow",
@@ -98,7 +98,7 @@ def create(AMIMap):
 		PolicyType(
 			"frontendPolicy",
 			PolicyName="frontendPolicy",
-			# ToDo lock down actions and resources
+			# TODO lock down actions and resources
 			PolicyDocument={
 				"Statement":[{
 					"Effect": "Allow",
