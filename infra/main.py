@@ -84,18 +84,17 @@ pushStack(cfnConnection,"dnsCheckerFrontend",frontendStack.to_json())
 
 # Wait for frontend stack to create so we can get the SNS topic and instance profile from it
 print("Waiting for frontend stack creation")
-cf = boto.cloudformation.connect_to_region("us-west-2")
-
-stack = cf.describe_stacks("dnsCheckerFrontend")
+stack = cfnConnection.describe_stacks("dnsCheckerFrontend")
 print("."),
 while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDATE_ROLLBACK_COMPLETE"):
 	sys.stdout.flush()
         time.sleep(10)
 	print("."),
-        stack = cf.describe_stacks("dnsCheckerFrontend")     
+        stack = cfnConnection.describe_stacks("dnsCheckerFrontend")     
 
 print("\n")
 
+# Get outputs from frontend stack
 for output in stack[0].outputs:
         if output.key == "instanceProfile":
                 instanceProfile = output.value
