@@ -80,7 +80,7 @@ frontendStack = frontend.create(AMIMap)
 # Create or update frontend stack
 print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
-pushStack("dnsCheckerFrontend",frontendStack.to_json()) 
+pushStack(cfnConnection,"dnsCheckerFrontend",frontendStack.to_json()) 
 
 # Wait for frontend stack to create so we can get the SNS topic and instance profile from it
 print("Waiting for frontend stack creation")
