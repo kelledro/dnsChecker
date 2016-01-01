@@ -2,8 +2,8 @@ FROM ubuntu
 MAINTAINER kelledro
 RUN \
   apt-get update && \
-  apt-get install -y python-pip && \
-  wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.py \
-    -O /etc/nginx/sites-enabled/dnschecker.conf 
-VOLUME /var/www /var/log/nginx
-CMD service nginx start
+  apt-get install -y python-dev python-pip gcc && \
+  pip install uwsgi
+VOLUME /var/www
+WORKDIR /var/www
+CMD uwsgi --ini checker.ini
