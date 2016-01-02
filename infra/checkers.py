@@ -1,6 +1,8 @@
 from troposphere import Template, Ref, Tags, Join, Base64
 
 from troposphere.ec2 import *
+from troposphere.autoscaling import Metadata
+from troposphere.cloudformation import *
 
 # Stack that creates a DNS checker instance
 
@@ -94,84 +96,95 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			VpcId=Ref(checkerVPC)
 		)
 	)
-	# Create checker Instance Metadata
-	checkerInstanceMetadata = {
-		"AWS::CloudFormation::Init": {
-			"configSets": {
-				"ordered" : [ "first", "second"]
-			},
-			"first": {
-				"packages": {
+
+	# Create checker instance metadata
+	checkerInstanceMetadata = Metadata(
+		Init(
+			# Use ConfigSets to ensure docker service is running before trying to run containers
+			# (since cfn-init runs "services" block last)
+			InitConfigSets(
+				ordered=["first","second"]
+			),
+			first=InitConfig(
+				packages={
 					"yum": {
 						"docker": []
 					}
 				},
-				"files": {
-					"/etc/cfn/cfn-hup.conf": {
-						"content" : {
-							"Fn::Join" : ["", [
-								"[main]\n",
-								"stack=", { "Ref" : "AWS::StackName" }, "\n",
-								"region=", { "Ref" : "AWS::Region" }, "\n",
-							]]
-						},
-						"mode": "0400",
-						"owner": "root",
-						"group": "root"
-					},
-					"/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-						"content" : {
-							"Fn::Join" : ["",[
-								"[cfn-auto-reloader-hook]\n",
-								"triggers=post.update\n",
-								"path=Resources.checkerInstance.Metadata\n",
-								"action=/opt/aws/bin/cfn-init -v --stack ", { "Ref" : "AWS::StackName" },
+				files=InitFiles(
+					{
+						"/etc/cfn/cfn-hup.conf": InitFile(
+							content=Join("",
+								[
+									"[main]\n",
+									"stack=",Ref("AWS::StackName"),"\n",
+									"region=",Ref("AWS::Region"),"\n"
+								]
+							),
+							mode="000400",
+							owner="root",
+							group="root"
+						),
+						"/etc/cfn/hooks.d/cfn-auto-reloader.conf": InitFile(
+							content=Join("",
+								[
+									"[cfn-auto-reloader-hook]\n",
+									"triggers=post.update\n",
+									"path=Resources.checkerInstance.Metadata\n",
+									"action=/opt/aws/bin/cfn-init -v --stack ", Ref("AWS::StackName"),
 									" --resource checkerInstance",
-									" --region ", { "Ref" : "AWS::Region" }, 
-									" -c ordered", "\n",
-								"runas=root\n"
-							]]
-						},
-						"mode": "0400",
-						"owner": "root",
-						"group": "root"
+									" --region ", Ref("AWS::Region"),
+									" -c ordered\n",
+									"runas=root\n"
+								]
+							),
+							mode="000400",
+							owner="root",
+							group="root"
+						),
+						"/var/www/checker.conf": InitFile(
+							content=Join("",
+								[
+									"dnsCheckerDDB = "+dnsCheckerDDB
+								]
+							),
+							mode="000400",
+							owner="root",
+							group="root"
+						)
 					}
-				},
-				"services": {
-					"sysvinit": {
-						"docker": {
-							"enabled": "true",
-							"ensureRunning": "true"
-						},
-						"cfn-hup": {
-							"enabled": "true",
-							"ensureRunning": "true",
-							"files" : [ "/etc/cfn/cfn-hup.conf" ,"/etc/cfn/hooks.d/cfn-auto-reloader.conf"]
+				),
+				services={
+					"sysvinit": InitServices(
+						{
+							"docker": InitService(
+								enabled=True,
+								ensureRunning=True
+							),
+							"cfn-hup": InitService(
+								enabled=True,
+								ensureRunning=True,
+								files=[
+									"/etc/cfn/cfn-hup.conf",
+									"/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+								]
+							)
 						}
+					)
+				}
+			),
+			second=InitConfig(
+				commands={
+					"runNginxContainer": {
+						"command" : "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
+					},
+					"runUwsgiContainer": {
+						"command" : "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
 					}
 				}
-			},
-			"second": {
-				"commands": {
-					"01mkdir": {
-						"command": "mkdir -p /var/www /var/log/nginx"
-					},
-					"02getChecker.py": {
-						"command": "wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.py -O /var/www/checker.py"
-					},
-					"03getChecker.ini": {
-						"command": "wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.ini -O /var/www/checker.ini"
-					},
-					"04runUwsgiContainer": {
-						"command": "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
-					},
-					"05runNginx": {
-						"command": "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
-					}
-				}
-			}
-		}
-	}
+			)
+		)
+	)
 
 	# Create checker Instance
 	checkerInstance = checker.add_resource(
@@ -213,3 +226,5 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 	)
 	return checker
 
+stack = create("foo","bar","moo","poo")
+print stack.to_json()
