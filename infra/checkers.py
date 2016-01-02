@@ -1,4 +1,4 @@
-from troposphere import Template, Ref, Tags, Join, Base64
+from troposphere import Template, Ref, Tags, Join, Base64, GetAtt
 
 from troposphere.ec2 import *
 from troposphere.autoscaling import Metadata
@@ -180,6 +180,14 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 					},
 					"runUwsgiContainer": {
 						"command" : "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
+					},
+					"99subscribeToSNS": {
+						"command": Join("",
+							[
+								"aws sns subscribe --protocol http --topic-arn ", snsTopic,
+								" --notification-endpoint http://", GetAtt("checkerInstance","PublicIp")
+							]
+						)
 					}
 				}
 			)
