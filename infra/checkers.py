@@ -117,7 +117,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 						"command": "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
 					},
 					"runNginx": {
-						"command": "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 dnschecker_nginx"
+						"command": "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
 					}
 				}
 			}
