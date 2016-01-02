@@ -166,5 +166,3 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 	)
 	return checker
 
-stack = create("foo","bar","moo","poo")
-print stack.to_json()
