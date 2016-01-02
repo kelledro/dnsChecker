@@ -94,6 +94,37 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			VpcId=Ref(checkerVPC)
 		)
 	)
+	# Create checker Instance Metadata
+	checkerInstanceMetadata = {
+		"AWS::CloudFormation::Init": {
+			"config": {
+				"packages": {
+					"yum": {
+						"docker": []
+					}
+				},
+				"commands": {
+					"makefolders": {
+						"command" : "mkdir /var/www /var/log/nginx"
+					},
+					"getChecker.py": {
+						"command": "get https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.py -O /var/www/checker.py"
+					},
+					"getChecker.ini": {
+						"command": "wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.ini -O /var/www/checker.ini"
+					},
+					"runUwsgiContainer": {
+						"command": "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
+					},
+					"runNginx": {
+						"command": "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 dnschecker_nginx"
+					}
+				}
+			}
+		},
+		"snsTopic" : snsTopic,
+		"dnsCheckerDDB" : dnsCheckerDDB
+	}
 
 	# Create checker Instance
 	checkerInstance = checker.add_resource(
@@ -103,6 +134,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			InstanceType="t2.micro",
 			KeyName="supportInstance", # TODO remove this after testing
 			IamInstanceProfile=instanceProfile,
+			Metadata=checkerInstanceMetadata,
 			UserData=Base64(
 				Join("",
 					[
@@ -133,3 +165,6 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 		)
 	)
 	return checker
+
+stack = create("foo","bar","moo","poo")
+print stack.to_json()

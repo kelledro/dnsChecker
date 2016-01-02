@@ -60,18 +60,18 @@ def pushStack(conn,name,template):
 # Disable dynamically getting AMIs to speed up testing
 #AMIMap = getAMI()
 
-AMIMap = { \
-	'us-east-1': {'id': 'ami-60b6c60a'}, \
-	'ap-northeast-1': {'id': 'ami-383c1956'}, \
-	'sa-east-1': {'id': 'ami-6817af04'}, \
-	'eu-central-1': {'id': 'ami-bc5b48d0'}, \
-	'ap-southeast-1': {'id': 'ami-c9b572aa'}, \
-	'ap-southeast-2': {'id': 'ami-48d38c2b'}, \
+AMIMap = { 
+	'us-east-1': {'id': 'ami-60b6c60a'}, 
+	'ap-northeast-1': {'id': 'ami-383c1956'}, 
+	'sa-east-1': {'id': 'ami-6817af04'}, 
+	'eu-central-1': {'id': 'ami-bc5b48d0'}, 
+	'ap-southeast-1': {'id': 'ami-c9b572aa'}, 
+	'ap-southeast-2': {'id': 'ami-48d38c2b'}, 
 	'us-west-2': {'id': 'ami-f0091d91'}, 
-	'us-gov-west-1': {'id': 'ami-f0091d91'}, \
-	'us-west-1': {'id': 'ami-d5ea86b5'}, \
-	'cn-north-1': {'id': 'ami-60b6c60a'}, \
-	'eu-west-1': {'id': 'ami-bff32ccc'} \
+	'us-gov-west-1': {'id': 'ami-f0091d91'}, 
+	'us-west-1': {'id': 'ami-d5ea86b5'}, 
+	'cn-north-1': {'id': 'ami-60b6c60a'}, 
+	'eu-west-1': {'id': 'ami-bff32ccc'} 
 }
 
 # Create frontend stack template
