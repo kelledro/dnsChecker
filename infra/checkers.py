@@ -97,33 +97,80 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 	# Create checker Instance Metadata
 	checkerInstanceMetadata = {
 		"AWS::CloudFormation::Init": {
-			"config": {
+			"configSets": {
+				"ordered" : [ "first", "second"]
+			},
+			"first": {
 				"packages": {
 					"yum": {
 						"docker": []
 					}
 				},
+				"files": {
+					"/etc/cfn/cfn-hup.conf": {
+						"content" : {
+							"Fn::Join" : ["", [
+								"[main]\n",
+								"stack=", { "Ref" : "AWS::StackName" }, "\n",
+								"region=", { "Ref" : "AWS::Region" }, "\n",
+							]]
+						},
+						"mode": "0400",
+						"owner": "root",
+						"group": "root"
+					},
+					"/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+						"content" : {
+							"Fn::Join" : ["",[
+								"[cfn-auto-reloader-hook]\n",
+								"triggers=post.update\n",
+								"path=Resources.checkerInstance.Metadata\n",
+								"action=/opt/aws/bin/cfn-init -v --stack ", { "Ref" : "AWS::StackName" },
+									" --resource checkerInstance",
+									" --region ", { "Ref" : "AWS::Region" }, 
+									" -c ordered", "\n",
+								"runas=root\n"
+							]]
+						},
+						"mode": "0400",
+						"owner": "root",
+						"group": "root"
+					}
+				},
+				"services": {
+					"sysvinit": {
+						"docker": {
+							"enabled": "true",
+							"ensureRunning": "true"
+						},
+						"cfn-hup": {
+							"enabled": "true",
+							"ensureRunning": "true",
+							"files" : [ "/etc/cfn/cfn-hup.conf" ,"/etc/cfn/hooks.d/cfn-auto-reloader.conf"]
+						}
+					}
+				}
+			},
+			"second": {
 				"commands": {
-					"makefolders": {
-						"command" : "mkdir /var/www /var/log/nginx"
+					"01mkdir": {
+						"command": "mkdir -p /var/www /var/log/nginx"
 					},
-					"getChecker.py": {
-						"command": "get https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.py -O /var/www/checker.py"
+					"02getChecker.py": {
+						"command": "wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.py -O /var/www/checker.py"
 					},
-					"getChecker.ini": {
+					"03getChecker.ini": {
 						"command": "wget https://raw.githubusercontent.com/kelledro/dnsChecker/master/app/checker.ini -O /var/www/checker.ini"
 					},
-					"runUwsgiContainer": {
+					"04runUwsgiContainer": {
 						"command": "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
 					},
-					"runNginx": {
+					"05runNginx": {
 						"command": "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
 					}
 				}
 			}
-		},
-		"snsTopic" : snsTopic,
-		"dnsCheckerDDB" : dnsCheckerDDB
+		}
 	}
 
 	# Create checker Instance

@@ -40,6 +40,7 @@ def pushStack(conn,name,template):
 		# Try updating if stack already exists
 		if error["Error"]["Code"] == "AlreadyExistsException":
 			print error["Error"]["Message"]
+			print("Updating stack")
 			try:
 				conn.update_stack(
 					stack_name=name,
