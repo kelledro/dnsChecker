@@ -142,7 +142,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 							owner="root",
 							group="root"
 						),
-						"/var/www/checker.conf": InitFile(
+						"/tmp/checker.conf": InitFile(
 							content=Join("",
 								[
 									"dnsCheckerDDB = "+dnsCheckerDDB
@@ -176,10 +176,10 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			second=InitConfig(
 				commands={
 					"runNginxContainer": {
-						"command" : "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
+						"command" : "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /tmp/:/tmp -p 80:80 kelledro/dnschecker_nginx"
 					},
 					"runUwsgiContainer": {
-						"command" : "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
+						"command" : "sudo docker run -dit --name uwsgi -v /tmp:/tmp kelledro/dnschecker_uwsgi"
 					},
 					"99subscribeToSNS": {
 						"command": Join("",
