@@ -108,7 +108,8 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			first=InitConfig(
 				packages={
 					"yum": {
-						"docker": []
+						"docker": [],
+						"curl": []
 					}
 				},
 				files=InitFiles(
@@ -145,7 +146,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 						"/var/www/checker.conf": InitFile(
 							content=Join("",
 								[
-									"dnsCheckerDDB = "+dnsCheckerDDB
+									"dnsCheckerDDB = "+dnsCheckerDDB+"\n"
 								]
 							),
 							mode="000400",
@@ -175,17 +176,18 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			),
 			second=InitConfig(
 				commands={
-					"runNginxContainer": {
+					"01runNginxContainer": {
 						"command" : "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /var/www/:/var/www -p 80:80 kelledro/dnschecker_nginx"
 					},
-					"runUwsgiContainer": {
+					"02runUwsgiContainer": {
 						"command" : "sudo docker run -dit --name uwsgi -v /var/www:/var/www kelledro/dnschecker_uwsgi"
 					},
-					"99subscribeToSNS": {
+					"50subscribeToSNS": {
 						"command": Join("",
 							[
 								"aws sns subscribe --protocol http --topic-arn ", snsTopic,
-								" --notification-endpoint http://", GetAtt("checkerInstance","PublicIp")
+								" --notification-endpoint http://$(curl -s 169.254.169.254/latest/meta-data/public-ipv4)",
+								" --region ", Ref("AWS::Region")
 							]
 						)
 					}
@@ -233,6 +235,3 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 		)
 	)
 	return checker
-
-stack = create("foo","bar","moo","poo")
-print stack.to_json()

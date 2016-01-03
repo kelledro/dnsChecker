@@ -93,7 +93,7 @@ while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDAT
 	print("."),
         stack = cfnConnection.describe_stacks("dnsCheckerFrontend")
 
-print("\n")
+print(".")
 
 # Get outputs from frontend stack
 for output in stack[0].outputs:
@@ -118,7 +118,7 @@ for region in regions:
 		# Launch checker stack in region
 		print("Creating checker stack in %s" % region.name)
 		cfnConnection = boto.cloudformation.connect_to_region(region.name)
-		stackName="dnsCheckerBackend-"+region.name
+		stackName="dnsCheckerBackend"
 		pushStack(cfnConnection,stackName,checkerStack.to_json())
 
 print("Finished")
