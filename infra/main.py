@@ -61,18 +61,18 @@ def pushStack(conn,name,template):
 # Disable dynamically getting AMIs to speed up testing
 #AMIMap = getAMI()
 
-AMIMap = { 
-	'us-east-1': {'id': 'ami-60b6c60a'}, 
-	'ap-northeast-1': {'id': 'ami-383c1956'}, 
-	'sa-east-1': {'id': 'ami-6817af04'}, 
-	'eu-central-1': {'id': 'ami-bc5b48d0'}, 
-	'ap-southeast-1': {'id': 'ami-c9b572aa'}, 
-	'ap-southeast-2': {'id': 'ami-48d38c2b'}, 
-	'us-west-2': {'id': 'ami-f0091d91'}, 
-	'us-gov-west-1': {'id': 'ami-f0091d91'}, 
-	'us-west-1': {'id': 'ami-d5ea86b5'}, 
-	'cn-north-1': {'id': 'ami-60b6c60a'}, 
-	'eu-west-1': {'id': 'ami-bff32ccc'} 
+AMIMap = {
+	'us-east-1': {'id': 'ami-60b6c60a'},
+	'ap-northeast-1': {'id': 'ami-383c1956'},
+	'sa-east-1': {'id': 'ami-6817af04'},
+	'eu-central-1': {'id': 'ami-bc5b48d0'},
+	'ap-southeast-1': {'id': 'ami-c9b572aa'},
+	'ap-southeast-2': {'id': 'ami-48d38c2b'},
+	'us-west-2': {'id': 'ami-f0091d91'},
+	'us-gov-west-1': {'id': 'ami-f0091d91'},
+	'us-west-1': {'id': 'ami-d5ea86b5'},
+	'cn-north-1': {'id': 'ami-60b6c60a'},
+	'eu-west-1': {'id': 'ami-bff32ccc'}
 }
 
 # Create frontend stack template
@@ -81,7 +81,7 @@ frontendStack = frontend.create(AMIMap)
 # Create or update frontend stack
 print("Creating frontend stack in us-west-2")
 cfnConnection = boto.cloudformation.connect_to_region("us-west-2")
-pushStack(cfnConnection,"dnsCheckerFrontend",frontendStack.to_json()) 
+pushStack(cfnConnection,"dnsCheckerFrontend",frontendStack.to_json())
 
 # Wait for frontend stack to create so we can get the SNS topic and instance profile from it
 print("Waiting for frontend stack creation")
@@ -91,7 +91,7 @@ while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDAT
 	sys.stdout.flush()
         time.sleep(10)
 	print("."),
-        stack = cfnConnection.describe_stacks("dnsCheckerFrontend")     
+        stack = cfnConnection.describe_stacks("dnsCheckerFrontend")
 
 print("\n")
 
@@ -114,10 +114,11 @@ for region in regions:
 
 	# Exclude China and gov cloud
 	if not fnmatch.fnmatch(region.name,"cn-*") and not fnmatch.fnmatch(region.name,"*gov*"):
-	
+
 		# Launch checker stack in region
 		print("Creating checker stack in %s" % region.name)
 		cfnConnection = boto.cloudformation.connect_to_region(region.name)
-		pushStack(cfnConnection,"dnsCheckerBackend",checkerStack.to_json())
+		stackName="dnsCheckerBackend-"+region.name
+		pushStack(cfnConnection,stackName,checkerStack.to_json())
 
 print("Finished")
