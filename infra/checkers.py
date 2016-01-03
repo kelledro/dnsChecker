@@ -143,10 +143,11 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 							owner="root",
 							group="root"
 						),
-						"/tmp/checker.conf": InitFile(
+						"/tmp/checkerconf.py": InitFile(
 							content=Join("",
 								[
-									"dnsCheckerDDB = "+dnsCheckerDDB+"\n"
+									"dnsCheckerDDB = "+dnsCheckerDDB+"\n",
+									"region = ", Ref("AWS::Region"), "\n"
 								]
 							),
 							mode="000400",
