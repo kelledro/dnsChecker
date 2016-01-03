@@ -200,7 +200,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			"checkerInstance",
 			ImageId=FindInMap("AMIMap",Ref("AWS::Region"),"id"),
 			InstanceType="t2.micro",
-			KeyName="supportInstance", # TODO remove this after testing
+			KeyName="kelledy", # TODO remove this after testing
 			IamInstanceProfile=instanceProfile,
 			Metadata=checkerInstanceMetadata,
 			UserData=Base64(

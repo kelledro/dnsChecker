@@ -20,7 +20,7 @@ def create(AMIMap):
 	# Create AMI Map
 	frontend.add_mapping("AMIMap",AMIMap)
 
-	# Checker related IAM stuff lives in frontend stack since IAM is global 
+	# Checker related IAM stuff lives in frontend stack since IAM is global
 	# and checker stacks will be run per region
 
 	# Create checker IAM Role
@@ -82,7 +82,7 @@ def create(AMIMap):
 			PolicyDocument={
 				"Statement":[{
 					"Effect": "Allow",
-					"Action":[ 
+					"Action":[
 						"sns:*",
 						"dynamodb:*"
 						],
@@ -121,7 +121,7 @@ def create(AMIMap):
 		)
 	)
 
-	
+
 	# Create DDB Table
 	dnsCheckerDDB = frontend.add_resource(
 		Table(
@@ -232,15 +232,15 @@ def create(AMIMap):
 			],
 			VpcId=Ref(frontendVPC)
 		)
-	)	
-			
+	)
+
 	# Create frontend Instance
 	frontendInstance = frontend.add_resource(
 		Instance(
 			"frontendInstance",
 			ImageId=FindInMap("AMIMap",Ref("AWS::Region"),"id"),
 			InstanceType="t2.micro",
-			KeyName="supportInstance",
+			KeyName="kelledy", 
 			IamInstanceProfile=Ref(frontendProfile),
 			NetworkInterfaces=[
 				NetworkInterfaceProperty(
@@ -250,7 +250,7 @@ def create(AMIMap):
 					DeviceIndex="0",
 					DeleteOnTermination="true",
 					SubnetId=Ref(frontendSubnet),
-					
+
 				)
 			],
 			Tags=Tags(
@@ -278,7 +278,7 @@ def create(AMIMap):
 			)
 		]
 	)
-	
+
 	# Output Instance profile
 	frontend.add_output(
 		[Output
