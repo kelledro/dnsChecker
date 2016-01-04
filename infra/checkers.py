@@ -182,13 +182,13 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 					"02runNginxContainer": {
 						"command" : Join("",
 							[
-								"sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx ",
+								"docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx ",
 								"-v /tmp/:/tmp -p 80:80 kelledro/dnschecker_nginx"
 							]
 						)
 					},
 					"01runUwsgiContainer": {
-						"command" : "sudo docker run -dit --name uwsgi -v /tmp:/tmp kelledro/dnschecker_uwsgi"
+						"command" : "docker run -dit --name uwsgi -v /tmp:/tmp kelledro/dnschecker_uwsgi"
 					},
 					"50subscribeToSNS": {
 						"command": Join("",
