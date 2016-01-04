@@ -195,7 +195,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 							[
 								"aws sns subscribe --protocol http --topic-arn ", snsTopic, " ",
 								"--notification-endpoint http://$(curl -s 169.254.169.254/latest/meta-data/public-ipv4) ",
-								"--region ", Ref("AWS::Region")
+								"--region us-west-2"
 							]
 						)
 					}
