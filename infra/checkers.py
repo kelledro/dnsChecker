@@ -132,10 +132,10 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 									"[cfn-auto-reloader-hook]\n",
 									"triggers=post.update\n",
 									"path=Resources.checkerInstance.Metadata\n",
-									"action=/opt/aws/bin/cfn-init -v --stack ", Ref("AWS::StackName"),
-									" --resource checkerInstance",
-									" --region ", Ref("AWS::Region"),
-									" -c ordered\n",
+									"action=/opt/aws/bin/cfn-init -v --stack ", Ref("AWS::StackName"), " ",
+									"--resource checkerInstance ",
+									"--region ", Ref("AWS::Region"), " ",
+									"-c ordered\n",
 									"runas=root\n"
 								]
 							),
@@ -143,7 +143,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 							owner="root",
 							group="root"
 						),
-						"/tmp/checkerconf.py": InitFile(
+						"/tmp/checker.conf": InitFile(
 							content=Join("",
 								[
 									"dnsCheckerDDB = "+dnsCheckerDDB+"\n",
@@ -178,7 +178,12 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			second=InitConfig(
 				commands={
 					"02runNginxContainer": {
-						"command" : "sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx -v /tmp/:/tmp -p 80:80 kelledro/dnschecker_nginx"
+						"command" : Join("",
+							[
+								"sudo docker run -dit --name nginx -v /var/log/nginx/:/var/log/nginx ",
+								"-v /tmp/:/tmp -p 80:80 kelledro/dnschecker_nginx"
+							]
+						)
 					},
 					"01runUwsgiContainer": {
 						"command" : "sudo docker run -dit --name uwsgi -v /tmp:/tmp kelledro/dnschecker_uwsgi"
@@ -186,9 +191,9 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 					"50subscribeToSNS": {
 						"command": Join("",
 							[
-								"aws sns subscribe --protocol http --topic-arn ", snsTopic,
-								" --notification-endpoint http://$(curl -s 169.254.169.254/latest/meta-data/public-ipv4)",
-								" --region ", Ref("AWS::Region")
+								"aws sns subscribe --protocol http --topic-arn ", snsTopic, " ",
+								"--notification-endpoint http://$(curl -s 169.254.169.254/latest/meta-data/public-ipv4) ",
+								"--region ", Ref("AWS::Region")
 							]
 						)
 					}
