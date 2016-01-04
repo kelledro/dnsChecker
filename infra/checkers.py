@@ -218,7 +218,7 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 					[
 						"#!/bin/bash\n",
 						"/opt/aws/bin/cfn-init -v ",
-						"--stack ", Ref("AWS::Stack"), " ",
+						"--stack ", Ref("AWS::StackName"), " ",
 						"--resource checkerInstance ",
 						"--region ", Ref("AWS::Region"), " ",
 						"-c ordered"
