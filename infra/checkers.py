@@ -146,8 +146,10 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 						"/tmp/checker.conf": InitFile(
 							content=Join("",
 								[
-									"dnsCheckerDDB = "+dnsCheckerDDB+"\n",
-									"region = ", Ref("AWS::Region"), "\n"
+									"{\n",
+									"\"dnsCheckerDDB\" : \""+dnsCheckerDDB+"\",\n",
+									"\"region\" : \"", Ref("AWS::Region"), "\"\n",
+									"}"
 								]
 							),
 							mode="000400",
@@ -214,12 +216,12 @@ def create(AMIMap, instanceProfile, snsTopic, dnsCheckerDDB):
 			UserData=Base64(
 				Join("",
 					[
-						"{ \"snsTopic\" : \"",
-						snsTopic,
-						"\",\n",
-						"\"dnsCheckerDDB\" : \"",
-						dnsCheckerDDB,
-						"\"\n}"
+						"#!/bin/bash\n",
+						"/opt/aws/bin/cfn-init -v ",
+						"--stack ", Ref("AWS::Stack"), " ",
+						"--resource checkerInstance ",
+						"--region ", Ref("AWS::Region"), " ",
+						"-c ordered"
 					]
 				)
 			),
