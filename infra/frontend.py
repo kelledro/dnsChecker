@@ -78,13 +78,12 @@ def create(AMIMap):
 		PolicyType(
 			"checkerPolicy",
 			PolicyName="checkerPolicy",
-			# TODO lock down actions and resources
 			PolicyDocument={
 				"Statement":[{
 					"Effect": "Allow",
 					"Action":[
-						"sns:*",
-						"dynamodb:*"
+						"sns:Subscribe",
+						"dynamodb:PutItem"
 						],
 					"Resource": "*"
 				}]
@@ -103,7 +102,7 @@ def create(AMIMap):
 				"Statement":[{
 					"Effect": "Allow",
 					"Action":[
-						"sns:*",
+						"sns:Publish",
 						"dynamodb:*"
 						],
 					"Resource": "*"
