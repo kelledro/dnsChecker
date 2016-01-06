@@ -95,7 +95,7 @@ while stack[0].stack_status not in ("CREATE_COMPLETE", "UPDATE_COMPLETE", "UPDAT
 	print("."),
         stack = cfnConnection.describe_stacks("dnsCheckerFrontend")
 
-print(".")
+print("done.")
 
 # Get outputs from frontend stack
 for output in stack[0].outputs:
