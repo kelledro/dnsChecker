@@ -83,7 +83,8 @@ def create(AMIMap):
 					"Effect": "Allow",
 					"Action":[
 						"sns:Subscribe",
-						"dynamodb:PutItem"
+						"dynamodb:PutItem",
+						"dynamodb:DescribeTable"
 						],
 					"Resource": "*"
 				}]
