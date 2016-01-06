@@ -16,4 +16,4 @@ message = json.dumps({"checkId": str(checkId), "hostname": hostname})
 snsConn = boto.sns.connect_to_region("us-west-2")
 
 # Publish notification
-snsConn.publish("arn:aws:sns:us-west-2:738476036662:dnsCheckerFrontend-checkerTopic-1G9ZUUI1F8P92", message)
+snsConn.publish("arn:aws:sns:us-west-2:738476036662:dnsCheckerFrontend-checkerTopic-UM6HPN388FJT", message)
