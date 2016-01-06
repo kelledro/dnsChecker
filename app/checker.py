@@ -34,6 +34,7 @@ def application(environ, start_response):
 
                 # Create item
                 itemData = {
+			"hostname" : message["hostname"],
                         "response" : response
                 }
                 item = table.new_item(
