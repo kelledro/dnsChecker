@@ -16,7 +16,7 @@ def getAMI():
 	regions = boto.ec2.regions()
 	for region in regions:
 	        if not fnmatch.fnmatch(region.name,"cn-*") and not fnmatch.fnmatch(region.name,"*gov*"):
-					#print("Getting latest AMZN linux AMI in %s" % region.name)
+			print("Getting latest AMZN linux AMI in %s" % region.name)
 	                ec2conn = boto.ec2.connect_to_region(region.name)
 	                images = ec2conn.get_all_images(owners=["amazon"], filters={"name": "amzn-ami-hvm-*.x86_64-gp2"})
 	                latestDate = ""
