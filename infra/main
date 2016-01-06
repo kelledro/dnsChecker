@@ -61,8 +61,9 @@ def pushStack(conn,name,template):
 			print error["Error"]["Message"]
 
 # Disable dynamically getting AMIs to speed up testing
-#AMIMap = getAMI()
+AMIMap = getAMI()
 
+"""
 AMIMap = {
 	'us-east-1': {'id': 'ami-60b6c60a'},
 	'ap-northeast-1': {'id': 'ami-383c1956'},
@@ -76,7 +77,7 @@ AMIMap = {
 	'cn-north-1': {'id': 'ami-60b6c60a'},
 	'eu-west-1': {'id': 'ami-bff32ccc'}
 }
-
+"""
 # Create frontend stack template
 frontendStack = frontend.create(AMIMap)
 
